@@ -1,7 +1,7 @@
 {
   "name": "@movenium/jsonapi-mongodb",
   "version": "1.0.0",
-  "description": "",
+  "description": "`npm install @movenium/jsonapi-mongodb --save-dev`",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -13,5 +13,14 @@
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.24.0",
     "mongodb": "^3.3.2"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Movenium/jsonapi-mongodb.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Movenium/jsonapi-mongodb/issues"
+  },
+  "homepage": "https://github.com/Movenium/jsonapi-mongodb#readme"
 }
