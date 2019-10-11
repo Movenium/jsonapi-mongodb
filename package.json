@@ -1,5 +1,5 @@
 {
-  "name": "jsonapi-mongodb",
+  "name": "@movenium/jsonapi-mongodb",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
