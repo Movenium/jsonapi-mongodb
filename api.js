@@ -6,7 +6,7 @@ var moment = require('moment')
 
 
 
-// TODO: http://springbot.github.io/json-api/extensions/bulk/, serializer, deserializer, sideload, users, queryParameterMagic(multi)
+// TODO: http://springbot.github.io/json-api/extensions/bulk/, serializer, deserializer, sideload, queryParameterMagic(multi)
 
 class api {
 
@@ -75,6 +75,7 @@ class api {
 
     async serverlessComEvent(event) {
         const request = this.createRequestFromServerlessComEvent(event)
+        
         this.params.token = request.token
 
         let response

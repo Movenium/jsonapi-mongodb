@@ -4,15 +4,17 @@
   "description": "`npm install @movenium/jsonapi-mongodb --save-dev`",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "nyc mocha"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^3.0.6",
     "jsonwebtoken": "^8.5.1",
+    "mocha": "^6.2.1",
     "moment": "^2.24.0",
-    "mongodb": "^3.3.2"
+    "mongodb": "^3.3.2",
+    "nyc": "^14.1.1"
   },
   "devDependencies": {},
   "repository": {
