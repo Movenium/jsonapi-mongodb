@@ -80,9 +80,10 @@ module.exports.searchDateAndConvert = (obj) => {
     }
 }
 
+// TODO: more accurate
 module.exports.testIsDate = (str) => {
     if (typeof str !== "string") return false
-    return str.match(/^([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))$/) ? true : false
+    return str.match(/^([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))/) ? true : false
 }
 
 module.exports.testIsDateBetween = (str) => {

@@ -47,6 +47,7 @@ class authentication {
             obj[key] = value
         }
 
+        await this.api.patch("users", user.id, {"attributes.lastlogin": new Date()})
        
         return {statusCode: 200, body: JSON.stringify({
             access_token: jwt.sign(obj, this.privateKey, { algorithm: 'RS256', expiresIn: this.params.expires}),

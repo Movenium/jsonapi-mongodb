@@ -65,7 +65,7 @@ class api {
         return {
             token: event.headers.Authorization ? event.headers.Authorization.substring(7) : null,
             method: event.httpMethod,
-            path: event.path,
+            path: event.pathParameters.collection + (event.pathParameters.id ? "/" + event.pathParameters.id : ""),
             params: {
                 queryString: tools.parseServerlessComQueryParams(event.queryStringParameters), 
                 body: tools.tryToParseJson(event.body)
@@ -84,7 +84,7 @@ class api {
         if (request.method.toLowerCase() === "options") return { statusCode: 200 }
         
         // login requests are handled in authentication class
-        if (this.params.authentication && request.method.toLowerCase() === "post" && request.path === "/login") {
+        if (this.params.authentication && request.method.toLowerCase() === "post" && event.pathParameters.collection === "login") {
             return this.params.authentication.login(event.body)
         }
 
@@ -144,10 +144,19 @@ class api {
         this.debug.push(JSON.parse(JSON.stringify(data)))
     }
 
+    createSort(str) {
+        const sort = {}
+        const direction = str.startsWith("-") ? -1 : 1
+        const key = direction === 1 ? str : str.substring(1)
+        sort[key] = direction
+        return sort
+    }
+
     async query(collection, parameters = {}) {
         const skip = parameters.offset ? parseInt(parameters.offset) : 0
         const limit = parameters.limit ? parseInt(parameters.limit) : 25
         const query = parameters.filter ? parameters.filter : {}
+        const sort = parameters.sort ? this.createSort(parameters.sort) : null
 
         this.queryParameterMagic(query)
         
@@ -155,8 +164,8 @@ class api {
         if (!this.connected) await this.connect()
 
         const fullQuery = Object.assign({"meta.status": {$ne : "removed"}}, query, this.getAuthorizer())
-        const response = await this.db.collection(collection).find(fullQuery).skip(skip).limit(limit).toArray()
-
+        const response = await this.db.collection(collection).find(fullQuery).sort(sort).skip(skip).limit(limit).toArray()
+       
         // count all the rows only if we needed .. and still use max 50ms for counting
         if (response.length >= limit || skip > 0) this.count = await this.db.collection(collection).count(fullQuery, {maxTimeMS: 50})
 
@@ -164,7 +173,7 @@ class api {
         
         response.forEach((doc) => this.serialize(doc))
 
-        if (this.params.debug) this.writeDebug({query: {collection: collection, parameters: parameters, query: fullQuery, response: response}})
+        if (this.params.debug) this.writeDebug({query: {collection: collection, parameters: parameters, query: fullQuery, sort: sort, skip: skip, limit: limit, response: response}})
         return response
     }
     
