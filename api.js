@@ -106,8 +106,15 @@ class api {
         if (this.debug) meta.debug = this.debug
         if (body && Object.keys(meta).length > 0) body.meta = meta
 
+        const headers = {}
+        if (this.params.cors) {
+            headers["Access-Control-Allow-Credentials"] = true
+            headers["Access-Control-Allow-Origin"] =  "*"
+        }
+
         return {
             statusCode: request.method.toLowerCase() === "delete" ? 204 : 200,
+            headers: headers,
             body: JSON.stringify(body)
         }
     }
