@@ -65,7 +65,7 @@ describe('Test Routes', function() {
     it('test quering with serverless.com event', async function() {
       const response = await api.serverlessComEvent({
         httpMethod: "get",
-        path: "test",
+        pathParameters: {collection: "test"},
         queryStringParameters: {"filter[attributes.test]": "test"},
         headers: {Authorization: "Bearer jwttoken"}
       })
