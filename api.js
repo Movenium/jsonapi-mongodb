@@ -36,7 +36,7 @@ class api {
     }
 
     authorize() {
-        if (!this.params.token && this.params.fullaccess) return
+        if (typeof this.params.token === "undefined" && this.params.fullaccess) return
         this.claims = jwt.verify(this.params.token, this.params.public_key)
 
         if (this.claims.tokentype && this.claims.tokentype === "refresh") throw new Error("Cannot authorize with refresh token")
@@ -44,7 +44,7 @@ class api {
 
     getAuthorizer() {
         // if fullaccess is set it is possible to do capi calls without authorizer
-        if (!this.claims && this.params.fullaccess) return {}
+        if (typeof this.params.token !== "undefined" && this.params.fullaccess) return {}
 
         if (!this.claims) throw new Error("Cannot get authorizer because authorize() is not called")
         const obj = {}

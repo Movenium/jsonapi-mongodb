@@ -1,6 +1,6 @@
 {
   "name": "@movenium/jsonapi-mongodb",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "`npm install @movenium/jsonapi-mongodb --save-dev`",
   "main": "index.js",
   "scripts": {
