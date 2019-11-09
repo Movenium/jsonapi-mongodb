@@ -44,7 +44,7 @@ class api {
 
     getAuthorizer() {
         // if fullaccess is set it is possible to do capi calls without authorizer
-        if (typeof this.params.token !== "undefined" && this.params.fullaccess) return {}
+        if (typeof this.params.token === "undefined" && this.params.fullaccess) return {}
 
         if (!this.claims) throw new Error("Cannot get authorizer because authorize() is not called")
         const obj = {}
