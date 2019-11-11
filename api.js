@@ -91,7 +91,7 @@ class api {
         
         // login requests are handled in authentication class
         if (this.params.authentication && request.method.toLowerCase() === "post" && event.pathParameters.collection === "login") {
-            const response = this.params.authentication.login(event.body)
+            const response = await this.params.authentication.login(event.body)
             response.headers = headers
             return response
         }
