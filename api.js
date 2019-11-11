@@ -80,12 +80,20 @@ class api {
 
         let response
 
+        const headers = {}
+        if (this.params.cors) {
+            headers["Access-Control-Allow-Credentials"] = true
+            headers["Access-Control-Allow-Origin"] =  "*"
+        }
+
         // always response 200 for options calls
         if (request.method.toLowerCase() === "options") return { statusCode: 200 }
         
         // login requests are handled in authentication class
         if (this.params.authentication && request.method.toLowerCase() === "post" && event.pathParameters.collection === "login") {
-            return this.params.authentication.login(event.body)
+            const response = this.params.authentication.login(event.body)
+            response.headers = headers
+            return response
         }
 
         try {
@@ -105,12 +113,6 @@ class api {
         if (this.count) meta.count = this.count
         if (this.debug) meta.debug = this.debug
         if (body && Object.keys(meta).length > 0) body.meta = meta
-
-        const headers = {}
-        if (this.params.cors) {
-            headers["Access-Control-Allow-Credentials"] = true
-            headers["Access-Control-Allow-Origin"] =  "*"
-        }
 
         return {
             statusCode: request.method.toLowerCase() === "delete" ? 204 : 200,
