@@ -87,7 +87,11 @@ class api {
         }
 
         // always response 200 for options calls
-        if (request.method.toLowerCase() === "options") return { statusCode: 200 }
+        if (request.method.toLowerCase() === "options") return { statusCode: 200, headers: {
+            'Access-Control-Allow-Origin': "*",
+            'Access-Control-Allow-Methods': "GET, POST, PATCH, DELETE",
+            'Access-Control-Allow-Headers': "*"
+        } }
         
         // login requests are handled in authentication class
         if (this.params.authentication && request.method.toLowerCase() === "post" && event.pathParameters.collection === "login") {
@@ -166,6 +170,7 @@ class api {
         const limit = parameters.limit ? parseInt(parameters.limit) : 25
         const query = parameters.filter ? parameters.filter : {}
         const sort = parameters.sort ? this.createSort(parameters.sort) : null
+        const project = parameters.fields ? this.createProject(collection, parameters.fields) : null
 
         this.queryParameterMagic(query)
         
@@ -173,7 +178,7 @@ class api {
         if (!this.connected) await this.connect()
 
         const fullQuery = Object.assign({"meta.status": {$ne : "removed"}}, query, this.getAuthorizer())
-        const response = await this.db.collection(collection).find(fullQuery).sort(sort).skip(skip).limit(limit).toArray()
+        const response = await this.db.collection(collection).find(fullQuery).project(project).sort(sort).skip(skip).limit(limit).toArray()
        
         // count all the rows only if we needed .. and still use max 50ms for counting
         if (response.length >= limit || skip > 0) this.count = await this.db.collection(collection).count(fullQuery, {maxTimeMS: 50})
@@ -182,8 +187,17 @@ class api {
         
         response.forEach((doc) => this.serialize(doc))
 
-        if (this.params.debug) this.writeDebug({query: {collection: collection, parameters: parameters, query: fullQuery, sort: sort, skip: skip, limit: limit, response: response}})
+        if (this.params.debug) this.writeDebug({query: {collection: collection, parameters: parameters, query: fullQuery, project: project, sort: sort, skip: skip, limit: limit, response: response}})
         return response
+    }
+
+    createProject(type, project) {
+        if (!project[type]) return null
+        const fields = project[type].split(",")
+        
+        const obj = {type: 1}
+        fields.forEach((item) => obj[item] = 1)
+        return obj
     }
     
     serialize(doc) {
