@@ -21,18 +21,15 @@ class api {
     }
 
     async connect() {
-
         this.authorize()
 
         this.connection = await mongo.MongoClient.connect(this.url)
         this.db = this.connection.db(this.db_name)
-
         this.connected = true
     }
 
     async close() {
         this.connection.close()
-        
         this.connected = false
     }
 
@@ -60,13 +57,6 @@ class api {
         for (const key of add_filters) obj["meta.authorizer." + key] = this.claims[key]
 
         return obj
-    }
-
-    getMetaForDocument() {
-        return {
-            authorizer: this.claims,
-            created: new Date()
-        }
     }
 
     async request(method, path, params) {        
@@ -159,51 +149,61 @@ class api {
     
     serialize(doc) {
         tools.convertMongoIdtoId(doc)
+        return doc
+    }
+
+    deserialize(doc, action) {
+        if (doc.attributes) tools.searchDateAndConvert(doc.attributes)
+        if (doc.relationships) tools.convertRelationsIdtoMongoId(doc.relationships)
+
+        // if id is sent we remove it because id is actually _id in db
+        if (doc.id) delete doc.id
+
+        if (action === "post") {
+            doc.meta = { authorizer: this.claims, created: new Date() }
+        }
+
+        if (action === "patch") {
+            // use dot-format in attributes and relationships so only given values would be changed
+            if (doc.attributes) tools.toDotFormat(doc, "attributes")
+            if (doc.relationships) tools.toDotFormat(doc, "relationships")
+
+            // set timestamp for this edit
+            doc["meta.modified"] = new Date()
+        }
     }
     
     async post(collection, doc) {
-        if (doc.attributes) tools.searchDateAndConvert(doc.attributes)
 
-        if (doc.attributes && doc.attributes.password) {
+        if (this.params.authentication && doc.attributes && doc.attributes.password) {
             doc.attributes.password = await this.params.authentication.hashPassword(doc.attributes.password)
         }
         
         const autoclose = this.connected ? false : true
         if (!this.connected) await this.connect()
-        doc.meta = this.getMetaForDocument()
-
-        if (doc.relationships) tools.convertRelationsIdtoMongoId(doc.relationships)
+        
+        this.deserialize(doc, "post", collection)
 
         const response = await this.db.collection(collection).insertOne(doc)
         if (autoclose) this.close()
 
-        return tools.convertMongoIdtoId(response.ops[0])
+        return this.serialize(response.ops[0])
     }
     
-    async patch (collection, id, set) {
-        tools.searchDateAndConvert(set.attributes)
-
-        // if id is sent we remove it because id is actually _id in db
-        if (set.id) delete set.id
-
-        // use dot-format in attributes and relationships so only given values would be changed
-        if (set.attributes) tools.toDotFormat(set, "attributes")
-        if (set.relationships) tools.convertRelationsIdtoMongoId(set.relationships)
-        if (set.relationships) tools.toDotFormat(set, "relationships")
-
-        // set timestamp for this edit
-        set["meta.modified"] = new Date()
+    async patch (collection, id, doc) {
+        
+        this.deserialize(doc, "patch", collection)
 
         const autoclose = this.connected ? false : true
         if (!this.connected) await this.connect()
 
         const fullQuery = Object.assign(this.getAuthorizer(), {_id: new mongo.ObjectID(id)})
         if (this.params.createHistory) await this.saveToHistory(collection, fullQuery)
-        const response = await this.db.collection(collection).findOneAndUpdate(fullQuery, { $set: set }, {returnOriginal: false})
+        const response = await this.db.collection(collection).findOneAndUpdate(fullQuery, { $set: doc }, {returnOriginal: false})
 
         if (autoclose) this.close()
 
-        return tools.convertMongoIdtoId(response.value)
+        return this.serialize(response.value)
     }
     
     async delete(collection, id) {
