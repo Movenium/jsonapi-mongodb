@@ -2,6 +2,7 @@
 var mongo = require('mongodb');
 var tools = require("./tools")
 var jwt = require('jsonwebtoken')
+var TokenExpiredError = require('jsonwebtoken/lib/TokenExpiredError')
 var moment = require('moment')
 var serverlessCom = require('./serverless')
 var ResponseError = require('./ResponseError')
@@ -37,9 +38,16 @@ class api {
 
     authorize() {
         if (typeof this.params.token === "undefined" && this.params.fullaccess) return
-        this.claims = jwt.verify(this.params.token, this.params.public_key)
 
-        if (this.claims.tokentype && this.claims.tokentype === "refresh") throw new Error("Cannot authorize with refresh token")
+        try {
+            this.claims = jwt.verify(this.params.token, this.params.public_key)
+        }
+        catch (e) {
+            if (e instanceof TokenExpiredError) throw new ResponseError(e.message, 401)
+            else throw e
+        }
+
+        if (this.claims.tokentype && this.claims.tokentype === "refresh") throw new ResponseError("Cannot authorize with refresh token", 401)
     }
 
     getAuthorizer() {
