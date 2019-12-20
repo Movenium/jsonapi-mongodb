@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^3.0.6",
+    "casbin": "^3.0.8",
     "jsonwebtoken": "^8.5.1",
     "mocha": "^6.2.1",
     "moment": "^2.24.0",

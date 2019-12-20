@@ -3,8 +3,8 @@ var mongo = require('mongodb');
 var tools = require("./tools")
 var jwt = require('jsonwebtoken')
 var moment = require('moment')
-
-
+var serverlessCom = require('./serverless')
+var ResponseError = require('./ResponseError')
 
 // TODO: http://springbot.github.io/json-api/extensions/bulk/, serializer, deserializer, sideload, queryParameterMagic(multi)
 
@@ -61,71 +61,10 @@ class api {
         }
     }
 
-    createRequestFromServerlessComEvent(event) {
-        return {
-            token: event.headers.Authorization ? event.headers.Authorization.substring(7) : null,
-            method: event.httpMethod,
-            path: event.pathParameters.collection + (event.pathParameters.id ? "/" + event.pathParameters.id : ""),
-            params: {
-                queryString: tools.parseServerlessComQueryParams(event.queryStringParameters), 
-                body: tools.tryToParseJson(event.body)
-            }
-        }
-    }
-
-    async serverlessComEvent(event) {
-        const request = this.createRequestFromServerlessComEvent(event)
+    async request(method, path, params) {        
         
-        this.params.token = request.token
+        if (this.params.enforcer) await this.enforce(this.params.enforcer, method, path)
 
-        let response
-
-        const headers = {}
-        if (this.params.cors) {
-            headers["Access-Control-Allow-Credentials"] = true
-            headers["Access-Control-Allow-Origin"] =  "*"
-        }
-
-        // always response 200 for options calls
-        if (request.method.toLowerCase() === "options") return { statusCode: 200, headers: {
-            'Access-Control-Allow-Origin': "*",
-            'Access-Control-Allow-Methods': "GET, POST, PATCH, DELETE",
-            'Access-Control-Allow-Headers': "*"
-        } }
-        
-        // login requests are handled in authentication class
-        if (this.params.authentication && request.method.toLowerCase() === "post" && event.pathParameters.collection === "login") {
-            const response = await this.params.authentication.login(event.body)
-            response.headers = headers
-            return response
-        }
-
-        try {
-            response = await this.request(request.method, request.path, request.params)
-        }
-        catch (reason) {
-            //throw reason
-            return {
-                statusCode: 400,
-                body: JSON.stringify({error: reason.message})
-            }    
-        }
-
-        const body = request.method.toLowerCase() === "delete" ? null : {data: response}
-        
-        const meta = {}
-        if (this.count) meta.count = this.count
-        if (this.debug) meta.debug = this.debug
-        if (body && Object.keys(meta).length > 0) body.meta = meta
-
-        return {
-            statusCode: request.method.toLowerCase() === "delete" ? 204 : 200,
-            headers: headers,
-            body: JSON.stringify(body)
-        }
-    }
-
-    async request(method, path, params) {
         const pathParams = tools.parsePath(path)
         method = method.toLowerCase()
 
@@ -135,20 +74,25 @@ class api {
             const response = await this.query(collection, {filter: {id: pathParams[1]}})
             return response[0]
         }
-        else if (method === "get") {
-            return await this.query(collection, params.queryString || {})
-        }
-        else if (method === "post") {
-            return await this.post(collection, params.body.data)
-        }
-        else if (method === "patch") {
-            return await this.patch(collection, pathParams[1], params.body.data)
-        }
-        else if (method === "delete") {
-            return await this.delete(collection, pathParams[1])
-        }
-        else {
-            throw new Error("Unknown method: " + method)
+        else if (method === "get") return await this.query(collection, params.queryString || {})
+        else if (method === "post") return await this.post(collection, params.body.data)
+        else if (method === "patch") return await this.patch(collection, pathParams[1], params.body.data)
+        else if (method === "delete") return await this.delete(collection, pathParams[1])
+        else throw new Error("Unknown method: " + method)
+        
+    }
+
+    async enforce(enforcer, method, path) {
+       
+        // this is called so this.claims would be solved .. little ugly
+        if (!this.connected) await this.connect()
+
+        const subject = tools.get(this.claims, enforcer.subject)
+
+        if (!subject) throw new Error(`Cannot enforce request because ${enforcer.subject} is not set in claims`)
+
+        if (!(await enforcer.casbin.enforce(subject, "/" + path, method))) {
+            throw new ResponseError("not allowed", 403, `route ${method} ${path} is forbidden for ${subject}`)
         }
     }
 
@@ -177,11 +121,12 @@ class api {
         const autoclose = this.connected ? false : true
         if (!this.connected) await this.connect()
 
-        const fullQuery = Object.assign({"meta.status": {$ne : "removed"}}, query, this.getAuthorizer())
+        const fullQuery = Object.assign({"meta.status": {$ne : "removed"}}, query, this.getAuthorizer(), await this.queryFilters(collection))
         const response = await this.db.collection(collection).find(fullQuery).project(project).sort(sort).skip(skip).limit(limit).toArray()
        
         // count all the rows only if we needed .. and still use max 50ms for counting
         if (response.length >= limit || skip > 0) this.count = await this.db.collection(collection).count(fullQuery, {maxTimeMS: 50})
+        else this.count = response.length
 
         if (autoclose) this.close()
         
@@ -189,6 +134,10 @@ class api {
 
         if (this.params.debug) this.writeDebug({query: {collection: collection, parameters: parameters, query: fullQuery, project: project, sort: sort, skip: skip, limit: limit, response: response}})
         return response
+    }
+
+    async queryFilters(collection) {
+        return {}
     }
 
     createProject(type, project) {
@@ -288,6 +237,13 @@ class api {
                 params[key] = {"$gte": moment.utc(value.split("_")[0]).toDate(), "$lte": new moment.utc(value.split("_")[1]).endOf("day").toDate()}
             }
         }
+    }
+
+
+    // wrap serverless.com supporter
+    serverlessComEvent(event) {
+        if (!this.serverlesscom) this.serverlesscom = new serverlessCom(this)
+        return this.serverlesscom.serverlessComEvent(event)
     }
 
 }

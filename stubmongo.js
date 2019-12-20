@@ -8,19 +8,23 @@ const testrows = [
 
 const find = (queryParams) => {
     return {
-        sort: (sort) => {
+        project: (project) => {
             return {
-                skip: (skip) => {
+                sort: (sort) => {
                     return {
-                        limit: (limit) => {
+                        skip: (skip) => {
                             return {
-                                toArray: () => {
-                                    module.exports.lastcall = {queryParams: queryParams, skip: skip, limit: limit}
-                                    return testrows
+                                limit: (limit) => {
+                                    return {
+                                        toArray: () => {
+                                            module.exports.lastcall = {queryParams: queryParams, skip: skip, limit: limit}
+                                            return testrows
+                                        }
+                                    }
                                 }
-                            }
+                            }    
                         }
-                    }    
+                    }
                 }
             }
         }
