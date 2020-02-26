@@ -53,8 +53,14 @@ class api {
 
         if (!this.claims) throw new Error("Cannot get authorizer because authorize() is not called")
         const obj = {}
-        const add_filters = typeof this.params.authorizer === "string" ? [this.params.authorizer] : this.params.authorizer
-        for (const key of add_filters) obj["meta.authorizer." + key] = this.claims[key]
+
+        if (typeof this.params.authorizer === "string" || Array.isArray(this.params.authorizer)) {
+            const add_filters = typeof this.params.authorizer === "string" ? [this.params.authorizer] : this.params.authorizer
+            for (const key of add_filters) obj["meta.authorizer." + key] = this.claims[key]
+        }
+        else {
+            for (let index in this.params.authorizer) obj[index] = this.params.authorizer[index]
+        }
 
         return obj
     }
