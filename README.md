@@ -49,7 +49,7 @@ const api = new (require('@movenium/jsonapi-mongodb/api'))(mongodb_url, database
 Set partnerid to be used
 
 ```
-api.claims = {partnerid: row.meta.authorizer.partnerid}
+api.claims = {partnerid: 12345}
 ```
 
 Write row
