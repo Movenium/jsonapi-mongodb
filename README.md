@@ -25,7 +25,7 @@ Here is full example what you need to add to your handler
 
 ```
 module.exports.handler = async (event) => {
-  const api = new (require('jsonapi-mongodb/api'))(mongodb_url, database_name, {
+  const api = new (require('@movenium/jsonapi-mongodb/api'))(mongodb_url, database_name, {
     public_key: <public key to check jwt token>,
     authorizer: "partnerid",
     createHistory: true
@@ -33,6 +33,32 @@ module.exports.handler = async (event) => {
 
   return await api.serverlessComEvent(event)
 }
+```
+
+# Standalone usage
+
+Create api
+
+```
+const api = new (require('@movenium/jsonapi-mongodb/api'))(mongodb_url, database_name, {
+  fullaccess: true,
+  authorizer: "partnerid",
+})
+```
+
+Set partnerid to be used
+
+```
+api.claims = {partnerid: row.meta.authorizer.partnerid}
+```
+
+Write row
+
+```
+const doc = await api.post("logs", {
+    attributes: {timestamp: new Date(), message: "hello world"}, 
+    type: "logs"
+})
 ```
 
 # Developing
