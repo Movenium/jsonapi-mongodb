@@ -237,19 +237,18 @@ class api {
 
             if (typeof value !== "string") continue
 
-            if (key.startsWith("relationships.")) {
-                if (value.length === 24) {
-                    params[key] = new mongo.ObjectID(value)
-                } else {
-                    params[key] = value.includes(",") ? {$in: value.split(",").map((id) => id)} : value
-                }
+            if (key.startsWith("relationships.") && value.length === 24) {
+                params[key] = new mongo.ObjectID(value)
+            } 
+            else if (key.startsWith("relationships.")) {
+                params[key] = value.includes(",") ? {$in: value.split(",")} : value 
             }       
             else if (key == "id") {
                 delete params[key]
                 params["_id"] = value.includes(",") ? {$in: value.split(",").map((id) => new mongo.ObjectID(id))} : new mongo.ObjectID(value)
             }  
             else if (key.startsWith("attributes.") && tools.testIsDateBetween(value)) {
-                params[key] = {"$gte": moment(value.split("_")[0]).format('YYYY-MM-DD HH:mm:ss'), "$lte": moment(value.split("_")[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss')}
+                params[key] = {"$gte": moment.utc(value.split("_")[0]).toDate(), "$lte": new moment.utc(value.split("_")[1]).endOf("day").toDate()}
             }      
             else if (key.startsWith("attributes.") && tools.testIsDate(value)) {
                 params[key] = {"$gte": moment.utc(value).toDate(), "$lte": new moment.utc(value).endOf("day").toDate()}
