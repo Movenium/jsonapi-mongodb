@@ -240,8 +240,8 @@ class api {
             if (key.startsWith("relationships.") && value.length === 24) {
                 params[key] = new mongo.ObjectID(value)
             } 
-            else if (key.startsWith("relationships.")) {
-                params[key] = value.includes(",") ? {$in: value.split(",")} : value 
+            else if (key.startsWith("relationships.") && value.includes(",")) {
+                params[key] = {$in: value.split(",")}
             }       
             else if (key == "id") {
                 delete params[key]
