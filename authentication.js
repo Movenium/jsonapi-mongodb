@@ -60,6 +60,10 @@ class authentication {
     }
 
     async hashPassword(plain_password) {
+
+        // do not double hash
+        if (plain_password.substring(0,7) === "$2b$10$") return plain_password
+
         const saltRounds = 10
         const salt = await bcrypt.genSalt(saltRounds)
         return await bcrypt.hash(plain_password, salt)

@@ -134,7 +134,9 @@ class api {
 
         if (autoclose) this.close()
         
-        response.forEach((doc) => this.serialize(doc))
+        response.forEach(async (doc) => {
+            return await this.serialize(doc)
+        })
 
         if (this.params.debug) this.writeDebug({query: {collection: collection, parameters: parameters, query: fullQuery, project: project, sort: sort, skip: skip, limit: limit, response: response}})
         return response
@@ -153,17 +155,22 @@ class api {
         return obj
     }
     
-    serialize(doc) {
+    async serialize(doc) {
         tools.convertMongoIdtoId(doc)
         return doc
     }
 
-    deserialize(doc, action) {
+    async deserialize(doc, action) {
         if (doc.attributes) tools.searchDateAndConvert(doc.attributes)
         if (doc.relationships) tools.convertRelationsIdtoMongoId(doc.relationships)
 
         // if id is sent we remove it because id is actually _id in db
         if (doc.id) delete doc.id
+
+        // always hash password field if it isnät hashed already
+        if (this.params.authentication && doc.attributes && doc.attributes.password) {
+            doc.attributes.password = await this.params.authentication.hashPassword(doc.attributes.password)
+        }
 
         if (action === "post") {
             doc.meta = { authorizer: this.claims, created: new Date() }
@@ -180,25 +187,20 @@ class api {
     }
     
     async post(collection, doc) {
-
-        if (this.params.authentication && doc.attributes && doc.attributes.password) {
-            doc.attributes.password = await this.params.authentication.hashPassword(doc.attributes.password)
-        }
-        
         const autoclose = this.connected ? false : true
         if (!this.connected) await this.connect()
         
-        this.deserialize(doc, "post", collection)
+        await this.deserialize(doc, "post", collection)
 
         const response = await this.db.collection(collection).insertOne(doc)
         if (autoclose) this.close()
 
-        return this.serialize(response.ops[0])
+        return await this.serialize(response.ops[0])
     }
     
     async patch (collection, id, doc) {
         
-        this.deserialize(doc, "patch", collection)
+        await this.deserialize(doc, "patch", collection)
 
         const autoclose = this.connected ? false : true
         if (!this.connected) await this.connect()
@@ -209,7 +211,7 @@ class api {
 
         if (autoclose) this.close()
 
-        return this.serialize(response.value)
+        return await this.serialize(response.value)
     }
     
     async delete(collection, id) {
