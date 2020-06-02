@@ -40,8 +40,7 @@ class api {
             this.claims = jwt.verify(this.params.token, this.params.public_key)
         }
         catch (e) {
-            if (e instanceof TokenExpiredError) throw new ResponseError(e.message, 401)
-            else throw e
+            throw new ResponseError(e.message, 401)
         }
 
         if (this.claims.tokentype && this.claims.tokentype === "refresh") throw new ResponseError("Cannot authorize with refresh token", 401)
