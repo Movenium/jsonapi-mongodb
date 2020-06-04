@@ -28,11 +28,6 @@ class api {
         this.connected = true
     }
 
-    async close() {
-        this.connection.close()
-        this.connected = false
-    }
-
     authorize() {
         if (typeof this.params.token === "undefined" && this.params.fullaccess) return
 
@@ -121,7 +116,6 @@ class api {
 
         this.queryParameterMagic(query)
         
-        const autoclose = this.connected ? false : true
         if (!this.connected) await this.connect()
 
         const fullQuery = Object.assign({"meta.status": {$ne : "removed"}}, query, this.getAuthorizer(), await this.queryFilters(collection))
@@ -130,8 +124,6 @@ class api {
         // count all the rows only if we needed .. and still use max 50ms for counting
         if (response.length >= limit || skip > 0) this.count = await this.db.collection(collection).count(fullQuery, {maxTimeMS: 50})
         else this.count = response.length
-
-        if (autoclose) this.close()
         
         response.forEach(async (doc) => {
             return await this.serialize(doc)
@@ -186,14 +178,12 @@ class api {
     }
     
     async post(collection, doc) {
-        const autoclose = this.connected ? false : true
         if (!this.connected) await this.connect()
         
         await this.deserialize(doc, "post", collection)
 
         const response = await this.db.collection(collection).insertOne(doc)
-        if (autoclose) this.close()
-
+     
         return await this.serialize(response.ops[0])
     }
     
@@ -201,24 +191,19 @@ class api {
         
         await this.deserialize(doc, "patch", collection)
 
-        const autoclose = this.connected ? false : true
         if (!this.connected) await this.connect()
 
         const fullQuery = Object.assign(this.getAuthorizer(), {_id: new mongo.ObjectID(id)})
         if (this.params.createHistory) await this.saveToHistory(collection, fullQuery)
         const response = await this.db.collection(collection).findOneAndUpdate(fullQuery, { $set: doc }, {returnOriginal: false})
 
-        if (autoclose) this.close()
-
         return await this.serialize(response.value)
     }
     
     async delete(collection, id) {
-        const autoclose = this.connected ? false : true
         if (!this.connected) await this.connect()
         await this.db.collection(collection).updateOne(Object.assign(this.getAuthorizer(), {_id: new mongo.ObjectID(id)}), { $set: {"meta.status": "removed"} })
-        if (autoclose) this.close()
-
+     
         return null
     }
 
