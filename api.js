@@ -9,6 +9,10 @@ var ResponseError = require('./ResponseError')
 
 // TODO: http://springbot.github.io/json-api/extensions/bulk/, serializer, deserializer, sideload, queryParameterMagic(multi)
 
+// keep cached connection outside of api class so it can be used between lambda invocations 
+// https://docs.atlas.mongodb.com/best-practices-connecting-to-aws-lambda/
+const cachedMongoConnection = null
+
 class api {
 
     constructor(url, db_name, params) {
@@ -23,7 +27,9 @@ class api {
     async connect() {
         this.authorize()
 
-        this.connection = await mongo.MongoClient.connect(this.url)
+        if (cachedMongoConnection) this.connection = cachedMongoConnection
+        else this.connection = cachedMongoConnection = await mongo.MongoClient.connect(this.url)
+
         this.db = this.connection.db(this.db_name)
         this.connected = true
     }
