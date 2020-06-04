@@ -11,7 +11,7 @@ var ResponseError = require('./ResponseError')
 
 // keep cached connection outside of api class so it can be used between lambda invocations 
 // https://docs.atlas.mongodb.com/best-practices-connecting-to-aws-lambda/
-const cachedMongoConnection = null
+let cachedMongoConnection = null
 
 class api {
 
