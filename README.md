@@ -24,8 +24,10 @@ events:
 Here is full example what you need to add to your handler
 
 ```
+const apiClass = require('@movenium/jsonapi-mongodb/api')
+
 module.exports.handler = async (event) => {
-  const api = new (require('@movenium/jsonapi-mongodb/api'))(mongodb_url, database_name, {
+  const api = new apiClass(mongodb_url, database_name, {
     public_key: <public key to check jwt token>,
     authorizer: "partnerid",
     createHistory: true
@@ -40,7 +42,9 @@ module.exports.handler = async (event) => {
 Create api
 
 ```
-const api = new (require('@movenium/jsonapi-mongodb/api'))(mongodb_url, database_name, {
+const apiClass = require('@movenium/jsonapi-mongodb/api')
+
+const api = new apiClass(mongodb_url, database_name, {
   fullaccess: true,
   authorizer: "partnerid",
 })
