@@ -232,7 +232,7 @@ class api {
             if (key.startsWith("relationships.") && value.length === 24) {
                 params[key] = new mongo.ObjectID(value)
             } 
-            else if (key.startsWith("relationships.") && value.includes(",")) {
+            else if (value.includes(",")) {
                 params[key] = {$in: value.split(",")}
             }       
             else if (key == "id") {
