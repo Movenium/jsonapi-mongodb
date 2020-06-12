@@ -21,7 +21,7 @@ class netlify {
     }
 
     async event(event) {
-        const request = this.createRequestFromServerlessComEvent(event)
+        const request = this.createRequestFromNetlifyEvent(event)
         
         this.api.params.token = request.token
 
@@ -29,7 +29,7 @@ class netlify {
 
         const headers = {}
         if (this.api.params.cors) {
-            headers["Access-Control-Allow-Credentials"] = true
+            headers["Access-Control-Allow-Credentials"] = "true"
             headers["Access-Control-Allow-Origin"] =  "*"
         }
 
