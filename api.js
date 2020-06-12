@@ -5,6 +5,7 @@ var jwt = require('jsonwebtoken')
 var TokenExpiredError = require('jsonwebtoken/lib/TokenExpiredError')
 var moment = require('moment')
 var serverlessCom = require('./serverless')
+var netlify = require('./netlify')
 var ResponseError = require('./ResponseError')
 
 // TODO: http://springbot.github.io/json-api/extensions/bulk/, serializer, deserializer, sideload, queryParameterMagic(multi)
@@ -253,6 +254,12 @@ class api {
     serverlessComEvent(event) {
         if (!this.serverlesscom) this.serverlesscom = new serverlessCom(this)
         return this.serverlesscom.serverlessComEvent(event)
+    }
+
+    // wrap netlify function supporter
+    netlifyEvent(event) {
+        if (!this.netlify) this.netlify = new netlify(this)
+        return this.netlify.event(event)
     }
 
 }
