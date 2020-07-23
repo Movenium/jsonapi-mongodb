@@ -48,15 +48,17 @@ class authentication {
         }
 
         await this.api.patch("users", user.id, {"attributes.lastlogin": new Date()})
-       
-        return {statusCode: 200, body: JSON.stringify({
+
+        const response = {
             access_token: jwt.sign(obj, this.privateKey, { algorithm: 'RS256', expiresIn: this.params.expires}),
             refresh_token: jwt.sign(Object.assign(obj, {type: "refresh"}), this.privateKey, { algorithm: 'RS256', expiresIn: this.params.refresh_expires || 3600 * 24 * 14}),
             expires_in: this.params.expires,
             token_type: "Bearer"
-        })}
-      
+        }
 
+        if (this.params.includeUserDocument) response.user = user
+       
+        return {statusCode: 200, body: JSON.stringify(response)}
     }
 
     async hashPassword(plain_password) {
