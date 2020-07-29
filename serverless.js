@@ -9,8 +9,12 @@ class serverlessCom {
     }
 
     createRequestFromServerlessComEvent(event) {
+
+        // also lower-case must work
+        const authorizationHeader = event.headers.Authorization || event.headers.authorization
+
         return {
-            token: event.headers.Authorization ? event.headers.Authorization.substring(7) : null,
+            token: authorizationHeader ? authorizationHeader.substring(7) : null,
             method: event.httpMethod,
             path: event.pathParameters.collection + (event.pathParameters.id ? "/" + event.pathParameters.id : ""),
             params: {

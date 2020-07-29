@@ -9,8 +9,12 @@ class netlify {
     }
 
     createRequestFromNetlifyEvent(event) {
+
+        // also lower-case must work
+        const authorizationHeader = event.headers.Authorization || event.headers.authorization
+
         return {
-            token: event.headers.authorization ? event.headers.authorization.substring(7) : null,
+            token: authorizationHeader ? authorizationHeader.substring(7) : null,
             method: event.httpMethod,
             path: event.path.split("/").slice(4).join("/"),
             params: {
