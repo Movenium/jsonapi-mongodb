@@ -230,7 +230,13 @@ class api {
 
             if (typeof value !== "string") continue
 
-            if (key.startsWith("relationships.") && value.length === 24) {
+            if (value === "true") {
+                params[key] = true
+            }
+            else if (value === "false") {
+                params[key] = false
+            }
+            else if (key.startsWith("relationships.") && value.length === 24) {
                 params[key] = new mongo.ObjectID(value)
             } 
             else if (value.includes(",")) {
