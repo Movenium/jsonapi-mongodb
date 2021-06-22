@@ -29,7 +29,7 @@ class api {
         this.authorize()
 
         if (cachedMongoConnection) this.connection = cachedMongoConnection
-        else this.connection = cachedMongoConnection = await mongo.MongoClient.connect(this.url)
+        else this.connection = cachedMongoConnection = await mongo.MongoClient.connect(this.url, { useNewUrlParser: true, useUnifiedTopology: true })
 
         this.db = this.connection.db(this.db_name)
         this.connected = true
