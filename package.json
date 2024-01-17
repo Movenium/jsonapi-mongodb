@@ -1,6 +1,6 @@
 {
   "name": "@movenium/jsonapi-mongodb",
-  "version": "1.1.18",
+  "version": "1.1.19",
   "description": "`npm install @movenium/jsonapi-mongodb --save-dev`",
   "main": "index.js",
   "scripts": {
@@ -9,13 +9,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "bcrypt": "^3.0.8",
-    "casbin": "^3.0.8",
-    "jsonwebtoken": "^8.5.1",
-    "mocha": "^6.2.1",
-    "moment": "^2.24.0",
-    "mongodb": "^3.3.2",
-    "nyc": "^14.1.1"
+    "bcrypt": "^5.1.1",
+    "casbin": "^5.28.0",
+    "jsonwebtoken": "^9.0.2",
+    "mocha": "^10.2.0",
+    "moment": "^2.30.1",
+    "mongodb": "^6.3.0",
+    "nyc": "^15.1.0"
   },
   "devDependencies": {},
   "repository": {
