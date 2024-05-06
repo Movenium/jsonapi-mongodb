@@ -39,7 +39,12 @@ class api {
         if (typeof this.params.token === "undefined" && this.params.fullaccess) return
 
         try {
-            this.claims = jwt.verify(this.params.token, this.params.public_key)
+            try {
+                this.claims = jwt.verify(this.params.token, this.params.public_key)
+            } catch(err) {
+                if(!this.params?.public_key2) throw err;
+                this.claims = jwt.verify(this.params.token, this.params.public_key2)
+            }
         }
         catch (e) {
             throw new ResponseError(e.message, 401)
