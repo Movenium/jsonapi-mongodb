@@ -17,7 +17,13 @@ class authentication {
         let user, scopes
 
         if (body.grant_type === "refresh_token") {
-            const claims = jwt.verify(body.refresh_token, this.params.public_key)
+            let claims = null;
+            try {
+                claims = jwt.verify(body.refresh_token, this.params.public_key)
+            } catch(err) {
+                if(!this.params?.public_key2) throw err;
+                claims = jwt.verify(body.refresh_token, this.params.public_key2)
+            }
 
             if (claims.tokentype && claims.tokentype !== "refresh") throw new Error("Cannot refresh with token type: " + claims.tokentype)
         
