@@ -134,7 +134,7 @@ class api {
         const response = await this.db.collection(collection).find(fullQuery).project(project).sort(sort).skip(skip).limit(limit).toArray()
        
         // count all the rows only if we needed .. and still use max 50ms for counting
-        if (response.length >= limit || skip > 0) this.count = await this.db.collection(collection).count(fullQuery, {limit: 1000})
+        if (response.length >= limit || skip > 0) this.count = await this.db.collection(collection).count(fullQuery, {limit: 4000})
         else this.count = response.length
         
         response.forEach(async (doc) => {
