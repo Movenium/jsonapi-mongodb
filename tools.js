@@ -27,7 +27,7 @@ module.exports.convertRelationsIdtoMongoId = (relations) => {
 
         const id = relation.data.id
 
-        if (module.exports.testIsMongoId(id)) relation.data.id = new mongo.ObjectID(id)
+        if (module.exports.testIsMongoId(id)) relation.data.id = new mongo.ObjectId(id)
     }
 }
 
