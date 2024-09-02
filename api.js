@@ -205,7 +205,7 @@ class api {
 
         if (!this.connected) await this.connect()
 
-        const fullQuery = Object.assign(this.getAuthorizer(), {_id: new mongo.ObjectID(id)})
+        const fullQuery = Object.assign(this.getAuthorizer(), {_id: new mongo.ObjectId(id)})
         if (this.params.createHistory) await this.saveToHistory(collection, fullQuery)
         const response = await this.db.collection(collection).findOneAndUpdate(fullQuery, { $set: doc }, {returnOriginal: false})
 
@@ -214,7 +214,7 @@ class api {
     
     async delete(collection, id) {
         if (!this.connected) await this.connect()
-        await this.db.collection(collection).updateOne(Object.assign(this.getAuthorizer(), {_id: new mongo.ObjectID(id)}), { $set: {"meta.status": "removed"} })
+        await this.db.collection(collection).updateOne(Object.assign(this.getAuthorizer(), {_id: new mongo.ObjectId(id)}), { $set: {"meta.status": "removed"} })
      
         return null
     }
@@ -242,14 +242,14 @@ class api {
                 params[key] = false
             }
             else if (key.startsWith("relationships.") && value.length === 24) {
-                params[key] = new mongo.ObjectID(value)
+                params[key] = new mongo.ObjectId(value)
             } 
             else if (value.includes(",")) {
                 params[key] = {$in: value.split(",")}
             }       
             else if (key == "id") {
                 delete params[key]
-                params["_id"] = value.includes(",") ? {$in: value.split(",").map((id) => new mongo.ObjectID(id))} : new mongo.ObjectID(value)
+                params["_id"] = value.includes(",") ? {$in: value.split(",").map((id) => new mongo.ObjectId(id))} : new mongo.ObjectId(value)
             }  
             else if (key.startsWith("attributes.") && tools.testIsDateBetween(value)) {
                 params[key] = {"$gte": moment.utc(value.split("_")[0]).toDate(), "$lte": new moment.utc(value.split("_")[1]).endOf("day").toDate()}
