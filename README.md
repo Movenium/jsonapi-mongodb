@@ -79,3 +79,15 @@ plugins:
   - serverless-offline
 ```
 use by typing `serverless offline start`
+
+
+# Publishing a new package to npmjs
+Prerequisite: You have to have an account on npmjs.com. If you do not have, create new account and let someone connect you to our organization in npmjs.
+1. make sure you are in correct branch you would like to publish
+2. run `npm login` from the command line
+3. run `npm publish` and the package will be automatically published in npmjs.com
+
+# Publishing a new package on github
+1. click on "New release" on the right side of the repository page in github
+2. from the "choose tag" -dropdown you can create new release
+
