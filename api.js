@@ -195,8 +195,10 @@ class api {
         await this.deserialize(doc, "post", collection)
 
         const response = await this.db.collection(collection).insertOne(doc)
-     
-        return await this.serialize(response.ops[0])
+        // mongodb 4.x doesn't return any more inserted document so now we have to fetch it
+        const insertedDoc = await this.db.collection(collection).findOne({ _id: response.insertedId });
+
+        return await this.serialize(insertedDoc);
     }
     
     async patch (collection, id, doc) {
