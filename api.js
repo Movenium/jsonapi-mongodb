@@ -209,9 +209,9 @@ class api {
 
         const fullQuery = Object.assign(this.getAuthorizer(), {_id: new mongo.ObjectId(id)})
         if (this.params.createHistory) await this.saveToHistory(collection, fullQuery)
-        const response = await this.db.collection(collection).findOneAndUpdate(fullQuery, { $set: doc }, {returnOriginal: false})
+        const response = await this.db.collection(collection).findOneAndUpdate(fullQuery, { $set: doc }, { returnDocument: "after" })
 
-        return await this.serialize(response.value)
+        return await this.serialize(response)
     }
     
     async delete(collection, id) {
