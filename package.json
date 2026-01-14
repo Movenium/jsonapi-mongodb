@@ -6,16 +6,19 @@
   "scripts": {
     "test": "nyc mocha"
   },
+  "engines": {
+    "node": ">=24.0.0 <25"
+  },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "bcrypt": "^5.1.1",
-    "casbin": "^5.28.0",
-    "jsonwebtoken": "^9.0.2",
-    "mocha": "^10.2.0",
+    "bcrypt": "^6.0.0",
+    "casbin": "^5.48.0",
+    "jsonwebtoken": "^9.0.3",
+    "mocha": "^11.7.5",
     "moment": "^2.30.1",
-    "mongodb": "^6.16.0",
-    "nyc": "^15.1.0"
+    "mongodb": "^7.0.0",
+    "nyc": "^17.1.0"
   },
   "repository": {
     "type": "git",
