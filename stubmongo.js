@@ -1,5 +1,5 @@
-
 module.exports.lastcall = null
+module.exports.lastInsertedDoc = null
 
 const testrows = [
     {_id: 12345, attributes: {"test": "test"}},
@@ -35,10 +35,16 @@ module.exports.db = { collection: () => {
 
     return {
         find: find,
+        findOne: async (query) => {
+            module.exports.lastcall = {query: query}
+            if (module.exports.lastInsertedDoc && module.exports.lastInsertedDoc._id === query._id) return module.exports.lastInsertedDoc
+            return testrows.find((row) => row._id === query._id)
+        },
         insertOne: (doc) => {
             module.exports.lastcall = {doc: doc}
             doc._id = "5da0180fb0c6dc53a0a83118"
-            return {ops: [doc]}
+            module.exports.lastInsertedDoc = doc
+            return {acknowledged: true, insertedId: doc._id}
         },
         findOneAndUpdate: (query, params, options) => {
             module.exports.lastcall = {query: query, params: params, options: options}

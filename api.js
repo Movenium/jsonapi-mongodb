@@ -28,8 +28,14 @@ class api {
     async connect() {
         this.authorize()
 
-        if (cachedMongoConnection) this.connection = cachedMongoConnection
-        else this.connection = cachedMongoConnection = await mongo.MongoClient.connect(this.url, { useNewUrlParser: true, useUnifiedTopology: true })
+        if (cachedMongoConnection) {
+            this.connection = cachedMongoConnection
+        }
+        else {
+            cachedMongoConnection = new mongo.MongoClient(this.url)
+            await cachedMongoConnection.connect()
+            this.connection = cachedMongoConnection
+        }
 
         this.db = this.connection.db(this.db_name)
         this.connected = true
@@ -134,7 +140,7 @@ class api {
         const response = await this.db.collection(collection).find(fullQuery).project(project).sort(sort).skip(skip).limit(limit).toArray()
        
         // count all the rows only if we needed .. and still use max 50ms for counting
-        if (response.length >= limit || skip > 0) this.count = await this.db.collection(collection).count(fullQuery, {limit: 1000})
+        if (response.length >= limit || skip > 0) this.count = await this.db.collection(collection).countDocuments(fullQuery, {limit: 1000})
         else this.count = response.length
         
         response.forEach(async (doc) => {
@@ -210,8 +216,9 @@ class api {
         const fullQuery = Object.assign(this.getAuthorizer(), {_id: new mongo.ObjectId(id)})
         if (this.params.createHistory) await this.saveToHistory(collection, fullQuery)
         const response = await this.db.collection(collection).findOneAndUpdate(fullQuery, { $set: doc }, { returnDocument: "after" })
+        const updatedDoc = response && response.value ? response.value : response
 
-        return await this.serialize(response)
+        return await this.serialize(updatedDoc)
     }
     
     async delete(collection, id) {

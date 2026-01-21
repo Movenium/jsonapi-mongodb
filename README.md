@@ -6,6 +6,18 @@ or
 
 `yarn add @movenium/jsonapi-mongodb`
 
+## Requirements
+
+- Node.js 24 LTS (AWS Lambda nodejs24.x runtime)
+- npm 10+ or Yarn 1.x
+
+Use nvm to match the runtime locally:
+
+```
+nvm install 24
+nvm use 24
+```
+
 
 # Using with serverless.com
 
