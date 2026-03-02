@@ -143,9 +143,7 @@ class api {
         if (response.length >= limit || skip > 0) this.count = await this.db.collection(collection).countDocuments(fullQuery, {limit: 1000})
         else this.count = response.length
         
-        response.forEach(async (doc) => {
-            return await this.serialize(doc)
-        })
+        await Promise.all(response.map((doc) => this.serialize(doc)))
 
         if (this.params.debug) this.writeDebug({query: {collection: collection, parameters: parameters, query: fullQuery, project: project, sort: sort, skip: skip, limit: limit, response: response}})
         return response
