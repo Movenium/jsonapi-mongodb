@@ -1,5 +1,7 @@
 var assert = require('assert');
 var stubmongo = require("../stubmongo")
+var serverlessCom = require("../serverless")
+var ResponseError = require("../ResponseError")
 
 
 let api
@@ -131,5 +133,29 @@ describe('Test Routes', function() {
       
     })
   });
+
+});
+
+describe('CORS headers', function() {
+
+  it('error responses include CORS headers when cors is enabled', async function() {
+    const mockApi = {
+      params: { cors: true },
+      request: async function() {
+        throw new ResponseError('Unauthorized', 401)
+      }
+    }
+
+    const sc = new serverlessCom(mockApi)
+    const response = await sc.serverlessComEvent({
+      httpMethod: 'GET',
+      pathParameters: { collection: 'test' },
+      queryStringParameters: {},
+      headers: { Authorization: 'Bearer invalidtoken' }
+    })
+
+    assert.equal(response.statusCode, 401, 'Returns 401 status')
+    assert.equal(response.headers['Access-Control-Allow-Origin'], '*', 'CORS header present on error response')
+  })
 
 });

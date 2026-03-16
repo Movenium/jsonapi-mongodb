@@ -55,7 +55,10 @@ class serverlessCom {
             response = await this.api.request(request.method, request.path, request.params)
         }
         catch (e) {
-            if (e instanceof ResponseError) return e.response
+            if (e instanceof ResponseError) {
+                e.response.headers = headers
+                return e.response
+            }
             throw e
         }
 
