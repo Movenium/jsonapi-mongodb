@@ -11,6 +11,9 @@
   },
   "author": "",
   "license": "ISC",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "casbin": "^5.48.0",

@@ -1,0 +1,50 @@
+name: Publish
+
+# Publishes the package to GitHub Packages when a GitHub release is published.
+# The release tag must match the version in package.json (vX.Y.Z).
+# A release marked as a pre-release is published under the "alpha" dist-tag.
+
+on:
+    release:
+        types: [published]
+
+permissions:
+    contents: read
+    packages: write
+
+concurrency:
+    group: publish
+
+jobs:
+    publish:
+        runs-on: ubuntu-26.04
+        steps:
+            - name: Check out repository code
+              uses: actions/checkout@v7
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v7
+              with:
+                  node-version-file: '.nvmrc'
+                  registry-url: 'https://npm.pkg.github.com'
+                  scope: '@movenium'
+
+            - name: Check that the tag matches the package version
+              run: |
+                  version="v$(node -p 'require("./package.json").version')"
+                  if [ "$version" != "$GITHUB_REF_NAME" ]; then
+                      echo "Tag $GITHUB_REF_NAME does not match package.json version $version"
+                      exit 1
+                  fi
+
+            - name: Install dependencies
+              run: yarn install --frozen-lockfile
+
+            - name: Run tests
+              run: yarn test
+
+            - name: Publish
+              run: npm publish --tag "$DIST_TAG"
+              env:
+                  DIST_TAG: ${{ github.event.release.prerelease && 'alpha' || 'latest' }}
+                  NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

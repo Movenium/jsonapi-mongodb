@@ -6,6 +6,24 @@ or
 
 `yarn add @movenium/jsonapi-mongodb`
 
+## Registry access
+
+The package is published to GitHub Packages, not to npmjs.com. Installing it needs a GitHub token with the `read:packages` scope.
+
+In the consuming repository, commit this line in `.npmrc` so `@movenium/*` packages resolve from GitHub Packages:
+
+```
+@movenium:registry=https://npm.pkg.github.com
+```
+
+Do not commit the token. On your machine, log in once with a classic personal access token that has `read:packages`:
+
+```
+npm login --scope=@movenium --auth-type=legacy --registry=https://npm.pkg.github.com
+```
+
+In GitHub Actions, pass `registry-url: 'https://npm.pkg.github.com'` and `scope: '@movenium'` to `actions/setup-node` and set `NODE_AUTH_TOKEN: ${{ github.token }}` on the install step. The consuming repository needs Read access under the package's "Manage Actions access" settings.
+
 ## Requirements
 
 - Node.js 24 LTS (AWS Lambda nodejs24.x runtime)
@@ -93,13 +111,26 @@ plugins:
 use by typing `serverless offline start`
 
 
-# Publishing a new package to npmjs
-Prerequisite: You have to have an account on npmjs.com. If you do not have, create new account and let someone connect you to our organization in npmjs.
-1. make sure you are in correct branch you would like to publish
-2. run `npm login` from the command line
-3. run `npm publish` and the package will be automatically published in npmjs.com
+# Publishing a new version
 
-# Publishing a new package on github
-1. click on "New release" on the right side of the repository page in github
-2. from the "choose tag" -dropdown you can create new release
+Publishing runs in GitHub Actions (`.github/workflows/publish.yml`) when a GitHub release is published. Do not run `npm publish` from your machine.
+
+1. Make sure you are on `master`, the working tree is clean, and the branch is up to date:
+    ```
+    git checkout master
+    git pull --ff-only
+    ```
+2. Bump the version. `npm version` updates `package.json`, creates a commit and a matching `vX.Y.Z` tag:
+    ```
+    npm version patch    # bug/security fix
+    npm version minor    # backwards-compatible feature
+    npm version major    # breaking change
+    ```
+3. Push the commit and the tag:
+    ```
+    git push --follow-tags
+    ```
+4. Create a GitHub release from the tag. The workflow checks that the tag matches `package.json`, runs the tests and publishes the package.
+
+For a pre-release, bump with `npm version prerelease --preid=alpha` and mark the GitHub release as a pre-release. It is published under the `alpha` dist-tag, so callers on `latest` do not pick it up. Install it with `npm install @movenium/jsonapi-mongodb@alpha`.
 
